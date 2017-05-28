@@ -1,0 +1,3 @@
+/Users/julia/.rbenv/versions/2.2.3/bin/ruby mkrf_conf.rb
+
+/Users/julia/.rbenv/versions/2.2.3/bin/ruby -rubygems /Users/julia/step/vendor/bundle/gems/rake-12.0.0/exe/rake RUBYARCHDIR=/Users/julia/step/vendor/bundle/extensions/x86_64-darwin-15/2.2.0-static/rainbow-2.2.2 RUBYLIBDIR=/Users/julia/step/vendor/bundle/extensions/x86_64-darwin-15/2.2.0-static/rainbow-2.2.2
