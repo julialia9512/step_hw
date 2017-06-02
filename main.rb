@@ -72,6 +72,3 @@ def post_info
     form.click_button
   }
 end
-page_init
-10.times{ post_word }
-post_info
