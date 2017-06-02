@@ -1,63 +1,77 @@
+# URLにアクセスするためのライブラリの読み込み
+require 'open-uri'
+# Nokogiriライブラリの読み込み
+require 'nokogiri'
+require 'mechanize'
 
-user_abc = ''
-print "Write your alphabets.\n"
-input = gets.chomp
-while input != '0'
-  print "what else? If no more, say '0'.\n"
-  user_abc += input
-  input = gets.chomp
-end
-user_abc = user_abc.split('')
-sorted_abc = user_abc.sort! { |a, b| a <=> b }
-p sorted_abc
+require 'net/http'
+require 'uri'
 
-# 差分をもとめる
-def diff(from, ary)
-  temp = from.dup # selfの破壊を防ぐため。
-  ary.each do |val|
-    idx = temp.index(val)
-    next if idx.nil? # ary2の要素がary1にないときはパス。
-    temp.delete_at(idx)
-  end
-  temp
+require('./find_words')
+
+# use nokogiri
+# charset = nil
+# html = open(url) do |f|
+#   charset = f.charset # 文字種別を取得
+#   f.read # htmlを読み込んで変数htmlに渡す
+# end
+#
+# # htmlをパース(解析)してオブジェクトを生成
+# doc = Nokogiri::HTML.parse(html, nil, charset)
+# div = doc.xpath('//div')
+# $letter = doc.css('.letter').inner_text
+# p $letter
+
+# スクレイピング先のURL
+$url = 'https://icanhazwordz.appspot.com/'
+def page_init
+  agent = Mechanize.new
+  # agent.log = Logger.new
+  $page = agent.get($url)
 end
 
-def score(word)
-  sum = 0
-  array = word.split('')
-  count = array.length
-  sum += count * 1 unless count.zero?
-  count = array.count do |chr|
-    chr == 'j' || chr == 'k' || chr == 'x' || chr == 'z'
-  end
-  sum += count * 2 unless count.zero?
-  count = array.count do |chr|
-    chr == 'c' || chr == 'f' || chr == 'h' ||
-      chr == 'l' || chr == 'm' || chr == 'p' ||
-      chr == 'v' || chr == 'w' || chr == 'y'
-  end
-  sum += count * 1 unless count.zero?
-  count = word.scan(/qu/).count
-  sum += count * 2 unless count.zero?
-  sum
+  # page.search('form').each { |doc|  puts doc} #for debug
+def get_letter
+  letter = $page.search('div.letter').inner_text
+  letter
 end
-# put words in the dictionary into a hash
-words = {}
-answer = []
-File.open('/Users/julia/Documents/debian_us_eng_dictionary.words') do |file|
-  file.each do |line|
-    word = line.strip
-    sorted_line = word.split('').sort! { |a, b| a <=> b }
-    words[word] = sorted_line.join
-    answer << word if diff(sorted_line, sorted_abc).empty?
-  end
+def get_seed
+  seed = $page.search("//form/input[@name = 'Seed']").attribute('value').text
+  seed
 end
-answer.select! { |n| n.length >= 5 }
-p answer.select { |n| n.length >= 10 }.nil?
-if answer.select { |n| n.length >= 10 }.nil?
-  answer.select! { |n| n.length >= 10 }
+def get_started
+  started = $page.search("//form/input[@name = 'Started']").attribute('value').text
+  started
 end
-answer.sort! { |a, b| b.length <=> a.length }
-answer = answer.max_by { |word| score(word) }
-p answer
-p score(answer)
+
+def post_word
+  answer = select_best_word(get_letter)
+  p answer
+  # my_url = URI.parse($url)
+  # puts res.body
+  # http = Net::HTTP.new $url
+  # name が f1 な <form> を探す
+  $page.form_with{|form|
+    form.field_with(:name => "Seed").value = get_seed
+    form.field_with(:name => "Started").value = get_started
+    form.field_with(:name => "move").value = answer
+    # フォームに submit ボタンがあれば「押」して送信
+    $page = form.click_button
+  }
+  puts $page.search('p')
+  # puts $page.search('form')
+  # p response = http.request(req)
+end
+
+def post_info
+  $page.form_with { |form|
+    form.field_with(:name => 'NickName' ).value = 'juli'
+    form.radiobuttons_with(:name => 'Agent' )[1].check
+    form.field_with(:name => 'Name').value = 'julia'
+    form.field_with(:name => 'Email').value = "https://github.com/julialia9512/step_hw1"
+    form.click_button
+  }
+end
+page_init
+10.times{ post_word }
+post_info
