@@ -68,7 +68,7 @@ def post_info
     form.field_with(:name => 'NickName' ).value = 'juli'
     form.radiobuttons_with(:name => 'Agent' )[1].check
     form.field_with(:name => 'Name').value = 'julia'
-    form.field_with(:name => 'Email').value = "https://github.com/julialia9512/step_hw1"
+    form.field_with(:name => 'Email').value = 'https://github.com/julialia9512/step_hw1'
     form.click_button
   }
 end
